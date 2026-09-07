@@ -1,100 +1,142 @@
-# HARA?
+# HARA? — Version 1 Web Beta
 
-HARA? is a Baku-focused local discovery and review app for finding trusted restaurants, nightlife venues, doctors, clinics, beauty salons, and spas.
+Local discovery and reviews for Azerbaijan, starting with Baku.
 
-## Product Direction
+**Status:** Private web beta. This is the first implementation snapshot, not the completed launch MVP or a native iOS/Android app.
 
-Build strictly from the approved HARA? MVP specification.
+**Preview:** https://hara-baku.abbas-nazarov.chatgpt.site (owner-private)
 
-The product should be:
+## Product rules
 
-* Premium
-* Mobile-first
-* Baku-focused
-* Visual
-* Simple
-* Trust-oriented
+Build strictly from `docs/HARA_MVP_Blueprint.md`. Keep the experience premium, mobile-first and Baku-focused. Do not add features outside the MVP unless requested.
 
-Do not add features outside the MVP unless explicitly requested.
+Core categories:
 
-## Core MVP Categories
+- Restaurants & Cafés
+- Nightlife
+- Doctors & Clinics
+- Beauty & Spa
 
-* Restaurants & Cafés
-* Nightlife
-* Doctors & Clinics
-* Beauty & Spa
+Use ratings from **1.0 to 10.0**. Doctor reviews describe patient experience, never medical competence, diagnosis accuracy or treatment effectiveness. Booking uses verified phone, WhatsApp or external links; a full booking system is outside the MVP.
 
-## Tech Stack
+## Included in this snapshot
 
-* React Native
-* Expo
-* TypeScript
-* Supabase
-* Next.js for admin/business tools
-* GitHub for version control
+- Home discovery feed and category shortcuts.
+- Search with category, rating, price, neighborhood and selected service/specialty filters.
+- Interactive Baku map with pan, zoom and selectable venue markers.
+- Restaurant, doctor, clinic, beauty and nightlife profile views.
+- Persistent saved places and category collections.
+- Review forms with category-specific scores, written reviews, optional photo uploads and “Would you return?” answers.
+- Basic location proximity checks for verified-visit badges.
+- Review moderation, helpful votes and reports.
+- Missing-place suggestions and business ownership claims.
+- Approved-owner description/contact editing and review reply submission.
+- Profile text editing, submission-status notifications and stored-record deletion.
+- Basic admin approval/rejection and account suspension controls.
 
-## Current Build Priority
+These are implemented flows, not a claim of end-to-end test coverage. Some workflows remain partial: approving a suggested place does not yet create a discoverable listing, and owner replies still need complete display integration.
 
-Start with **Milestone 1 only**.
+## Data and launch limitations
 
-Build a polished, navigable frontend prototype with realistic Baku-focused sample data.
+Listings, displayed scores, review counts, prices and venue photography are illustrative. They are labeled as samples. Displayed score aggregates do not yet recalculate from submitted genuine reviews. Contact actions remain unavailable where verified contact details are missing.
 
-Required first screens:
+Still required by the blueprint:
 
-1. Splash
-2. Home
-3. Categories
-4. Search
-5. Search Results
-6. Restaurant Profile
-7. Doctor Profile
-8. Beauty/Spa Profile
-9. Nightlife Profile
-10. Saved
-11. User Profile
-12. Bottom Navigation
+- Native Expo iOS/Android app and app-store delivery.
+- Public account registration with email verification.
+- Verified Baku listing dataset; target 500 listings before launch.
+- Genuine review aggregates, return percentages and confidence-weighted ranking.
+- Complete category-specific filters, distance filtering and reliable open-now/availability data.
+- Full Azerbaijani and Russian localization; only main discovery labels are translated today.
+- Complete admin listing creation, deletion, duplicate merging and category management.
+- Full owner menu, service and photo management.
+- Review highlights, profile-photo editing and complete notification behavior.
+- Normalized relational schema matching the blueprint.
+- Complete account deletion, including uploaded image objects.
+- Security review, accessibility review and browser/end-to-end testing.
 
-Do not implement the full backend yet.
+## Current technology
 
-## Design Direction
+| Layer | Current implementation |
+| --- | --- |
+| Interface | React 19, TypeScript, Vinext/Vite |
+| Styling | Tailwind CSS 4, custom CSS, Radix/Shadcn primitives |
+| Runtime | Cloudflare Workers through Sites |
+| Database | Cloudflare D1 with Drizzle migrations |
+| Photos | Cloudflare R2 |
+| Authentication | Sites-provided ChatGPT identity |
+| Map | OpenStreetMap tiles and custom pan/zoom controls |
 
-The app should feel closer to:
+The blueprint recommends Expo and Supabase. This web beta currently uses the stack above; it is not already an Expo/Supabase project.
 
-**Airbnb × premium local discovery app**
+## Source structure
 
-Avoid:
+| Path | Purpose |
+| --- | --- |
+| `app/page.tsx` | Main application views and interactions |
+| `app/globals.css` | Brand styling and responsive layout |
+| `app/BakuMap.tsx` | Interactive map |
+| `app/api/data/route.ts` | Data, saves, reviews and moderation API |
+| `app/api/upload/route.ts` | Photo uploads |
+| `app/api/photo/[id]/route.ts` | Photo retrieval |
+| `lib/data.ts` | Sample listings and category rating definitions |
+| `db/schema.ts` | Current database schema |
+| `drizzle/` | Generated database migrations |
+| `public/images/` | Illustrative images |
+| `.openai/hosting.json` | Existing Site identity and logical storage bindings |
+| `IMPLEMENTATION.md` | Detailed implementation notes and image sources |
+| `docs/HARA_MVP_Blueprint.md` | Authoritative product blueprint |
 
-* Generic directory styling
-* Old Yelp-style layouts
-* Corporate SaaS visuals
-* Excessive clutter
-* Unnecessary features
+## Development setup
 
-Use:
+The existing scripts target **Linux**, with Node.js **22.13.0 or later**, npm, Bash, `flock`, `curl` and GNU `timeout`. On a Mac, use a Linux development container or adapt the Linux-specific scripts first.
 
-* Strong photography
-* Large 1–10 ratings
-* Rounded cards
-* Clean typography
-* Generous spacing
-* Minimal interface
+From the extracted project directory:
 
-## Important Rules
+```bash
+npm run install:ci
+npm run dev
+```
 
-* Guest users must be able to browse without signing up.
-* Every visible button should work or be clearly disabled.
-* Do not fabricate real reviews.
-* Use sample/test content when business data has not been verified.
-* Use reusable TypeScript components.
-* Do not hard-code secrets.
-* Do not add payments, loyalty, chat, delivery, AI assistant, or social feed during MVP.
+Other existing commands:
 
-## Full Specifications
+```bash
+npm run build
+npm run db:generate
+```
 
-See:
+The preview UI and backend have different prerequisites. Persistent workflows require D1/R2 bindings, an initialized database and a trusted authentication layer. Local simulation does not automatically supply the deployed Site's users, database contents or photo objects. Database migration generation does not apply migrations by itself.
 
-`docs/HARA_MVP_Blueprint.md`
+Outside Sites, provision those services and replace or securely integrate the authentication layer. The API currently trusts identity headers supplied by Sites; never expose it publicly behind a server that accepts arbitrary client-supplied identity headers. Admin access currently uses a server-side account-email check in `app/api/data/route.ts`.
 
-`docs/HARA_Technical_Build_Plan.md`
+The existing `.openai/hosting.json` identifies the current Site. Keeping source in GitHub does not automatically deploy it or configure GitHub Actions.
 
-These documents are the source of truth for product scope and technical architecture.
+## Add this version to GitHub
+
+1. Create an empty **private** repository named `hara-web`.
+2. Extract `HARA_V1_Source.zip` and open its `hara-v1` directory.
+3. Use the included `README.md` as the repository README. `HARA_VERSION_1.md` is a standalone copy of this document, not the application code.
+4. Run the following, replacing `YOUR_GITHUB_USERNAME`:
+
+```bash
+git init
+git add .
+git commit -m "HARA version 1 web beta"
+git branch -M main
+git remote add origin https://github.com/YOUR_GITHUB_USERNAME/hara-web.git
+git push -u origin main
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The product snapshot is called Version 1; the suggested Git tag is `v0.1.0` because the launch MVP is incomplete and the package version is currently `0.1.0`.
+
+The ZIP includes tracked source, assets, configuration, lockfile and migrations. It excludes `.git`, dependencies, build output, runtime caches, credentials and live user data. Original deployed source revision: `3cbedd13a862c65a5e000fe78abd740d5c645693`. The export replaces the generic starter README with this document and adds the supplied blueprint; application code is unchanged.
+
+## Verification
+
+The prior build, SQLite migration check, saved-place uniqueness check and deployment packaging check passed. Private deployment succeeded. Browser interaction testing and a complete automated test suite were not run. Existing starter tests are not proof of HARA feature coverage.
+
+## Explicitly outside MVP
+
+No payments, full booking calendar, appointment inventory, loyalty wallet, direct messaging, delivery, AI assistant, video feed, advertising platform or subscription billing.

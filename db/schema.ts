@@ -1,0 +1,3 @@
+import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
+export const records = sqliteTable('records', {id:text('id').primaryKey(),kind:text('kind').notNull(),userId:text('user_id').notNull(),businessId:text('business_id').notNull().default(''),status:text('status').notNull().default('pending'),data:text('data').notNull(),createdAt:integer('created_at').notNull()});
+export const saved = sqliteTable('saved_businesses',{id:text('id').primaryKey(),userId:text('user_id').notNull(),businessId:text('business_id').notNull()}, t=>[uniqueIndex('saved_user_business').on(t.userId,t.businessId)]);
